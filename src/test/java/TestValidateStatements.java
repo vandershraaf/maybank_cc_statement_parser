@@ -3,6 +3,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.*;
 
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
+
+import java.io.File;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -14,7 +16,7 @@ import java.util.Scanner;
 public class TestValidateStatements {
 
     private static Parser parser;
-    private static String folderPath = "";
+    private static File folder = new File("");
 
     // Reference: https://stackoverflow.com/a/23991368/396092
     private BigDecimal parseAmount(String amount){
@@ -31,7 +33,7 @@ public class TestValidateStatements {
     @BeforeAll
     public static void init(){
         parser = new Parser();
-        parser.process(folderPath);
+        parser.process(folder);
     }
 
 

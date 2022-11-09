@@ -28,8 +28,7 @@ public class Parser {
         this.configure();
     }
 
-    public void process(String inputFolderPath){
-        File folder = new File(inputFolderPath);
+    public void process(File folder){
         if (folder.isDirectory()){
             for (File file : folder.listFiles()){
                 this.writeFile(file);
