@@ -8,13 +8,13 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 @TestMethodOrder(OrderAnnotation.class)
 public class TestValidateStatements {
 
-    private static Main main;
-    private static BigDecimal calcAllDebit;
-    private static BigDecimal calcAllCredit;
+    private static Parser parser;
+    private static String folderPath = "";
 
     // Reference: https://stackoverflow.com/a/23991368/396092
     private BigDecimal parseAmount(String amount){
@@ -30,51 +30,48 @@ public class TestValidateStatements {
 
     @BeforeAll
     public static void init(){
-        main = new Main();
-        main.process();
+        parser = new Parser();
+        parser.process(folderPath);
     }
+
+
 
     @Test
     @Order(1)
-    public void validateEachCard(){
-        calcAllDebit = this.parseAmount("0.00");
-        calcAllCredit = this.parseAmount("0.00");
-        for (String cc : main.getSpecificValuesMap().keySet()){
-            BigDecimal totalCredit =  this.parseAmount(main.getSpecificValuesMap().get(cc).get("total_credit")) ;
-            BigDecimal totalDebit = this.parseAmount(main.getSpecificValuesMap().get(cc).get("total_debit"));
-            ArrayList<StatementLine> statementLines = (ArrayList<StatementLine>) main.getStatementsMap().get(cc);
-            BigDecimal calcTotalCredit = this.parseAmount("0.00");
-            BigDecimal calcTotalDebit = this.parseAmount("0.00");
-            for (StatementLine statementLine : statementLines){
-                if (statementLine.isCredit){
-                    calcTotalCredit = calcTotalCredit.add(this.parseAmount(statementLine.getAmount()));
-                } else {
-                    calcTotalDebit = calcTotalDebit.add(this.parseAmount(statementLine.getAmount()));
+    public void validate(){
+
+        ArrayList<Output> outputs = parser.getOutputs();
+        for (Output output : outputs){
+            BigDecimal calcAllDebit = this.parseAmount("0.00");
+            BigDecimal calcAllCredit = this.parseAmount("0.00");
+            for (String cc : output.getSpecificValuesMap().keySet()){
+                BigDecimal totalCredit =  this.parseAmount(output.getSpecificValuesMap().get(cc).get("total_credit")) ;
+                BigDecimal totalDebit = this.parseAmount(output.getSpecificValuesMap().get(cc).get("total_debit"));
+                ArrayList<StatementLine> statementLines = (ArrayList<StatementLine>) output.getStatementsMap().get(cc);
+                BigDecimal calcTotalCredit = this.parseAmount("0.00");
+                BigDecimal calcTotalDebit = this.parseAmount("0.00");
+                for (StatementLine statementLine : statementLines){
+                    if (statementLine.isCredit){
+                        calcTotalCredit = calcTotalCredit.add(this.parseAmount(statementLine.getAmount()));
+                    } else {
+                        calcTotalDebit = calcTotalDebit.add(this.parseAmount(statementLine.getAmount()));
+                    }
                 }
+
+                assertEquals(0, totalCredit.compareTo(calcTotalCredit));
+                assertEquals(0, totalDebit.compareTo(calcTotalDebit));
+
+                calcAllCredit = calcAllCredit.add(calcTotalCredit);
+                calcAllDebit = calcAllDebit.add(calcTotalDebit);
             }
-
-            assertEquals(0, totalCredit.compareTo(calcTotalCredit));
-            assertEquals(0, totalDebit.compareTo(calcTotalDebit));
-
-            calcAllCredit = calcAllCredit.add(calcTotalCredit);
-            calcAllDebit = calcAllDebit.add(calcTotalDebit);
-
+            BigDecimal previousBalance = this.parseAmount(output.getMainValuesMap().get("main_previous_balance"));
+            BigDecimal currentBalance = this.parseAmount(output.getMainValuesMap().get("main_current_account_balance"));
+            BigDecimal calcCurrentBalance = calcAllDebit.subtract(calcAllCredit).add(previousBalance);
+            assertEquals(0, calcCurrentBalance.compareTo(currentBalance));
         }
 
 
     }
-
-    @Test
-    @Order(2)
-    public void validateTotal(){
-        BigDecimal previousBalance = this.parseAmount(main.getMainValuesMap().get("main_previous_balance"));
-        BigDecimal currentBalance = this.parseAmount(main.getMainValuesMap().get("main_current_account_balance"));
-        BigDecimal calcCurrentBalance = calcAllDebit.subtract(calcAllCredit).add(previousBalance);
-        assertEquals(0, calcCurrentBalance.compareTo(currentBalance));
-    }
-
-
-
 
 
 }
