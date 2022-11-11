@@ -54,10 +54,15 @@ public class Main {
                 Parser parser = new Parser();
                 parser.process(inputFolder);
                 ArrayList<Output> outputs = parser.getOutputs();
+                int index = 1;
                 for (Output output : outputs){
                     System.out.println(output.getMainValuesMap());
                     System.out.println(output.getStatementsMap());
+                    Writer writer = new Writer();
+                    writer.outputExcel(output, index);
+                    index++;
                 }
+
 
             }
         });
