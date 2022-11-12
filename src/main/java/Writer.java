@@ -3,10 +3,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.ArrayList;
 
 public class Writer {
@@ -16,12 +13,12 @@ public class Writer {
         return (output.getStatementMonth() / 10 >= 1 ? "" : "0") + + output.getStatementMonth();
     }
 
-    public void outputExcel(Output output){
+    public void outputExcel(Output output, File outputFolder){
         int rowNum = 0;
         OutputStream fileOut = null;
         Workbook wb = new XSSFWorkbook();
         try {
-            fileOut = new FileOutputStream(output.getStatementYear() + "_" + this.getPaddedMonth(output) +".xlsx");
+            fileOut = new FileOutputStream(outputFolder.getAbsolutePath() + "/" +output.getStatementYear() + "_" + this.getPaddedMonth(output) +".xlsx");
             Sheet sheet = wb.createSheet("Statements");
 
             // Statement month
