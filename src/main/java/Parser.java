@@ -35,8 +35,7 @@ public class Parser {
     public void process(File folder){
         if (folder.isDirectory()){
             for (File file : folder.listFiles()){
-                this.writeFile(file);
-                Output output = this.readFile();
+                Output output = this.processFile(file);
                 // Set the statement month post process
                 String stmtMonthStr = output.getMainValuesMap().get("main_statement_month");
                 try {
@@ -170,11 +169,13 @@ public class Parser {
         return output;
     }
 
-    private Output readFile(){
+    private Output processFile(File file){
         Output output = new Output();
-        File input = new File("output.xml");
+        //File input = new File("output.xml");
+
         try {
-            Document document = Jsoup.parse(input);
+            String xmlInput = parseToHTML(file);
+            Document document = Jsoup.parse(xmlInput);
             Elements pages = document.getElementsByClass("page");
             String currentcc = null;
             boolean isNextRegex = false; // Set to true only if the value will be found in next line.
@@ -237,30 +238,14 @@ public class Parser {
 
             return output;
 
-        } catch (IOException e) {
+        } catch (TikaException e) {
             throw new RuntimeException(e);
-        }
-
-    }
-
-    private void writeFile(File file){
-        BufferedWriter bufferedWriter = null;
-        try {
-            bufferedWriter = new BufferedWriter(new FileWriter("output.xml"));
-            bufferedWriter.write(parseToHTML(file));
         } catch (IOException e) {
             throw new RuntimeException(e);
         } catch (SAXException e) {
             throw new RuntimeException(e);
-        } catch (TikaException e) {
-            throw new RuntimeException(e);
-        } finally {
-            try {
-                bufferedWriter.close();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
         }
+
     }
 
     private String parseToHTML(File file) throws IOException, SAXException, TikaException {
