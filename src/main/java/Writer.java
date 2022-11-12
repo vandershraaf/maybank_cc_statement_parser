@@ -12,19 +12,22 @@ import java.util.ArrayList;
 public class Writer {
 
 
-    public void outputExcel(Output output, int index){
+    private String getPaddedMonth(Output output){
+        return (output.getStatementMonth() / 10 >= 1 ? "" : "0") + + output.getStatementMonth();
+    }
+
+    public void outputExcel(Output output){
         int rowNum = 0;
         OutputStream fileOut = null;
         Workbook wb = new XSSFWorkbook();
         try {
-            fileOut = new FileOutputStream(index + ".xlsx");
+            fileOut = new FileOutputStream(output.getStatementYear() + "_" + this.getPaddedMonth(output) +".xlsx");
             Sheet sheet = wb.createSheet("Statements");
 
             // Statement month
             Row monthRow = sheet.createRow(rowNum);
             monthRow.createCell(0).setCellValue("Statement Month");
-            monthRow.createCell(1).setCellValue( (output.getStatementMonth() % 10 == 1 ? "" : "0") + output.getStatementMonth()
-                                                        + "/" + output.getStatementYear()  );
+            monthRow.createCell(1).setCellValue(this.getPaddedMonth(output) + "/" + output.getStatementYear()  );
             rowNum++;
             sheet.createRow(rowNum);
             rowNum++;
