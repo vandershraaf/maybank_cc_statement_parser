@@ -1,4 +1,3 @@
-import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -20,10 +19,20 @@ public class Writer {
         try {
             fileOut = new FileOutputStream(index + ".xlsx");
             Sheet sheet = wb.createSheet("Statements");
+
+            // Statement month
+            Row monthRow = sheet.createRow(rowNum);
+            monthRow.createCell(0).setCellValue("Statement Month");
+            monthRow.createCell(1).setCellValue( (output.getStatementMonth() % 10 == 1 ? "" : "0") + output.getStatementMonth()
+                                                        + "/" + output.getStatementYear()  );
+            rowNum++;
+            sheet.createRow(rowNum);
+            rowNum++;
             for(String cc : output.getStatementsMap().keySet()) {
                 ArrayList<StatementLine> statementLines = (ArrayList<StatementLine>) output.getStatementsMap().get(cc);
 
                 Row ccRow = sheet.createRow(rowNum);
+                ccRow.createCell(0).setCellValue("Credit Card Number");
                 ccRow.createCell(1).setCellValue(cc);
                 rowNum+=1;
                 for (StatementLine statementLine : statementLines){
@@ -34,6 +43,8 @@ public class Writer {
                     stRow.createCell(3).setCellValue(statementLine.getAmount());
                     rowNum+=1;
                 }
+                sheet.createRow(rowNum);
+                rowNum++;
             }
             wb.write(fileOut);
             wb.close();

@@ -11,7 +11,11 @@ import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 
 import java.io.*;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -32,7 +36,21 @@ public class Parser {
         if (folder.isDirectory()){
             for (File file : folder.listFiles()){
                 this.writeFile(file);
-                this.outputs.add(this.readFile());
+                Output output = this.readFile();
+                // Set the statement month post process
+                String stmtMonthStr = output.getMainValuesMap().get("main_statement_month");
+                try {
+                    Date date = new SimpleDateFormat("dd MMM yy").parse(stmtMonthStr);
+                    Calendar calendar = Calendar.getInstance();
+                    calendar.setTime(date);
+                    int month = calendar.get(Calendar.MONTH) + 1;
+                    int year = calendar.get(Calendar.YEAR);
+                    output.setStatementMonth(month);
+                    output.setStatementYear(year);
+                } catch (ParseException e) {
+                    throw new RuntimeException(e);
+                }
+                this.outputs.add(output);
             }
         }
     }
@@ -53,6 +71,18 @@ public class Parser {
         singleRegex.getValueMapping().put(3, "main_minimum_amount_to_pay");
         singleRegex.setMatchesCount(3);
         this.regexMap.put(singleRegex.getRegex(), singleRegex);
+
+        // Statement month regex
+            // For example: NOV 2020 etc
+            // (\d{2}\s+[A-Z]{3}\s+\d{2})\s+\d{2}\s+[A-Z]{3}\s+\d{2}
+            // The signal is "Tarikh Akhir Pembayaran\s?"
+        SingleRegex monthRegex = new SingleRegex();
+        monthRegex.setRegex("Tarikh Akhir Pembayaran\\s?");
+        monthRegex.setCurrent(false);
+        monthRegex.setRegexNext("(\\d{2}\\s+[A-Z]{3}\\s+\\d{2})\\s+\\d{2}\\s+[A-Z]{3}\\s+\\d{2}");
+        monthRegex.getValueMapping().put(1, "main_statement_month");
+        monthRegex.setMatchesCount(1);
+        this.regexMap.put(monthRegex.getRegex(), monthRegex);
 
         // Previous balance
         SingleRegex singleRegex2 = new SingleRegex();
