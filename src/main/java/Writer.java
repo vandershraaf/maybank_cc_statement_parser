@@ -13,6 +13,50 @@ public class Writer {
         return (output.getStatementMonth() / 10 >= 1 ? "" : "0") + + output.getStatementMonth();
     }
 
+    // Output only transactions and no summary.
+    // Assumption: This would work only if there is no supplementary card (additional credit card number), since all rows are piled together
+    public void outputExcelTransactionsOnly(Output output, File outputFolder){
+        int rowNum = 0;
+        OutputStream fileOut = null;
+        Workbook wb = new XSSFWorkbook();
+        try {
+            fileOut = new FileOutputStream(outputFolder.getAbsolutePath() + "/" +output.getStatementYear() + "_" + this.getPaddedMonth(output) +".xlsx");
+            Sheet sheet = wb.createSheet("Statements");
+
+            for(String cc : output.getStatementsMap().keySet()) {
+                ArrayList<StatementLine> statementLines = (ArrayList<StatementLine>) output.getStatementsMap().get(cc);
+                for (StatementLine statementLine : statementLines){
+                    Row stRow = sheet.createRow(rowNum);
+                    stRow.createCell(0).setCellValue(statementLine.getPostingDate());
+                    stRow.createCell(1).setCellValue(statementLine.getTransactionDate());
+                    stRow.createCell(2).setCellValue(statementLine.getDescription());
+                    if (statementLine.isCredit){
+                        stRow.createCell(3).setCellValue(statementLine.getAmount());
+                    } else {
+                        // Add amount with '-' symbol to denote debit
+                        stRow.createCell(3).setCellValue("-"+statementLine.getAmount());
+                    }
+                    rowNum+=1;
+
+                }
+
+            }
+            wb.write(fileOut);
+            wb.close();
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                fileOut.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+    }
+
     public void outputExcel(Output output, File outputFolder){
         int rowNum = 0;
         OutputStream fileOut = null;

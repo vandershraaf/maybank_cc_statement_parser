@@ -10,6 +10,7 @@ public class Main {
 
     File inputFolder;
     File outputFolder;
+    boolean isTransactionOnly;
 
     public static void main(String[] args){
         Main main = new Main();
@@ -73,7 +74,22 @@ public class Main {
         });
         panel2.add(button2);
         panel2.add(label2);
+
+        JCheckBox checkBox = new JCheckBox("Only transactions in output?", false);
+        checkBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (checkBox.isSelected()){
+                    isTransactionOnly = true;
+                } else {
+                    isTransactionOnly = false;
+                }
+            }
+        });
+        panel2.add(checkBox);
+
         frame.getContentPane().add(panel2, BorderLayout.CENTER);
+
 
         JPanel panelSubmit = new JPanel();
         LayoutManager layout3 = new FlowLayout();
@@ -88,10 +104,12 @@ public class Main {
                     System.out.println(output.getMainValuesMap());
                     System.out.println(output.getStatementsMap());
                     Writer writer = new Writer();
-                    writer.outputExcel(output, outputFolder);
+                    if (isTransactionOnly){
+                        writer.outputExcelTransactionsOnly(output, outputFolder);
+                    } else {
+                        writer.outputExcel(output, outputFolder);
+                    }
                 }
-
-
             }
         });
         panelSubmit.add(submit);
